@@ -1,4 +1,4 @@
-﻿namespace ClientGui;
+﻿namespace Client;
 
 partial class Form1
 {
@@ -41,6 +41,10 @@ partial class Form1
         btnSend = new Button();
         lblResult = new Label();
         txtResult = new RichTextBox();
+        txtPassword = new TextBox();
+        lblPassword = new Label();
+        txtUsername = new TextBox();
+        lblUsername = new Label();
         SuspendLayout();
         // 
         // lbServerIP
@@ -68,7 +72,6 @@ partial class Form1
         lblPort.Size = new Size(35, 20);
         lblPort.TabIndex = 2;
         lblPort.Text = "Port";
-        lblPort.Click += label1_Click;
         // 
         // txtPort
         // 
@@ -80,50 +83,50 @@ partial class Form1
         // 
         // btnConnect
         // 
-        btnConnect.Location = new Point(21, 119);
+        btnConnect.Location = new Point(21, 200);
         btnConnect.Name = "btnConnect";
         btnConnect.Size = new Size(330, 40);
         btnConnect.TabIndex = 4;
         btnConnect.Text = "Connect";
         btnConnect.UseVisualStyleBackColor = true;
+        btnConnect.Click += btnConnect_Click;
         // 
         // btnDisconnect
         // 
         btnDisconnect.Enabled = false;
-        btnDisconnect.Location = new Point(357, 119);
+        btnDisconnect.Location = new Point(357, 200);
         btnDisconnect.Name = "btnDisconnect";
         btnDisconnect.Size = new Size(330, 40);
         btnDisconnect.TabIndex = 5;
         btnDisconnect.Text = "Disconnect";
         btnDisconnect.UseVisualStyleBackColor = true;
+        btnDisconnect.Click += btnDisconnect_Click;
         // 
         // lblStatus
         // 
         lblStatus.AutoSize = true;
         lblStatus.ForeColor = Color.DimGray;
-        lblStatus.Location = new Point(21, 186);
+        lblStatus.Location = new Point(21, 266);
         lblStatus.Name = "lblStatus";
-        lblStatus.Size = new Size(117, 20);
+        lblStatus.Size = new Size(109, 20);
         lblStatus.TabIndex = 6;
-        lblStatus.Text = "⚫ Chưa kết nối";
-        lblStatus.Click += label1_Click_1;
+        lblStatus.Text = "⬤ Chưa kết nối";
         // 
         // lblCommand
         // 
         lblCommand.AutoSize = true;
-        lblCommand.Location = new Point(21, 234);
+        lblCommand.Location = new Point(21, 319);
         lblCommand.Name = "lblCommand";
         lblCommand.Size = new Size(78, 20);
         lblCommand.TabIndex = 7;
         lblCommand.Text = "Command";
-        lblCommand.Click += label1_Click_2;
         // 
         // cmbCommand
         // 
         cmbCommand.DropDownStyle = ComboBoxStyle.DropDownList;
         cmbCommand.FormattingEnabled = true;
         cmbCommand.Items.AddRange(new object[] { "hostname", "dir", "ipconfig" });
-        cmbCommand.Location = new Point(21, 274);
+        cmbCommand.Location = new Point(21, 354);
         cmbCommand.Name = "cmbCommand";
         cmbCommand.Size = new Size(666, 28);
         cmbCommand.TabIndex = 8;
@@ -131,17 +134,18 @@ partial class Form1
         // btnSend
         // 
         btnSend.Enabled = false;
-        btnSend.Location = new Point(287, 323);
+        btnSend.Location = new Point(287, 403);
         btnSend.Name = "btnSend";
         btnSend.Size = new Size(136, 40);
         btnSend.TabIndex = 9;
         btnSend.Text = "Send Command";
         btnSend.UseVisualStyleBackColor = true;
+        btnSend.Click += btnSend_Click;
         // 
         // lblResult
         // 
         lblResult.AutoSize = true;
-        lblResult.Location = new Point(21, 388);
+        lblResult.Location = new Point(21, 468);
         lblResult.Name = "lblResult";
         lblResult.Size = new Size(49, 20);
         lblResult.TabIndex = 10;
@@ -151,19 +155,55 @@ partial class Form1
         // 
         txtResult.BackColor = SystemColors.Window;
         txtResult.ForeColor = Color.DimGray;
-        txtResult.Location = new Point(21, 425);
+        txtResult.Location = new Point(21, 505);
         txtResult.Name = "txtResult";
         txtResult.ReadOnly = true;
-        txtResult.ScrollBars = RichTextBoxScrollBars.Vertical;
-        txtResult.Size = new Size(666, 120);
+        txtResult.Size = new Size(666, 132);
         txtResult.TabIndex = 12;
         txtResult.Text = "";
+        // 
+        // txtPassword
+        // 
+        txtPassword.Location = new Point(357, 145);
+        txtPassword.Name = "txtPassword";
+        txtPassword.Size = new Size(330, 27);
+        txtPassword.TabIndex = 16;
+        // 
+        // lblPassword
+        // 
+        lblPassword.AutoSize = true;
+        lblPassword.Location = new Point(357, 113);
+        lblPassword.Name = "lblPassword";
+        lblPassword.Size = new Size(70, 20);
+        lblPassword.TabIndex = 15;
+        lblPassword.Text = "Password";
+        // 
+        // txtUsername
+        // 
+        txtUsername.Location = new Point(21, 145);
+        txtUsername.Name = "txtUsername";
+        txtUsername.Size = new Size(330, 27);
+        txtUsername.TabIndex = 14;
+        txtUsername.Text = "admin";
+        // 
+        // lblUsername
+        // 
+        lblUsername.AutoSize = true;
+        lblUsername.Location = new Point(21, 113);
+        lblUsername.Name = "lblUsername";
+        lblUsername.Size = new Size(75, 20);
+        lblUsername.TabIndex = 13;
+        lblUsername.Text = "Username";
         // 
         // Form1
         // 
         AutoScaleDimensions = new SizeF(8F, 20F);
         AutoScaleMode = AutoScaleMode.Font;
-        ClientSize = new Size(709, 574);
+        ClientSize = new Size(709, 663);
+        Controls.Add(txtPassword);
+        Controls.Add(lblPassword);
+        Controls.Add(txtUsername);
+        Controls.Add(lblUsername);
         Controls.Add(txtResult);
         Controls.Add(lblResult);
         Controls.Add(btnSend);
@@ -176,6 +216,7 @@ partial class Form1
         Controls.Add(lblPort);
         Controls.Add(txtServerIP);
         Controls.Add(lbServerIP);
+        FormBorderStyle = FormBorderStyle.FixedSingle;
         Icon = (Icon)resources.GetObject("$this.Icon");
         Name = "Form1";
         Text = " Remote Command Client";
@@ -197,4 +238,8 @@ partial class Form1
     private Button btnSend;
     private Label lblResult;
     private RichTextBox txtResult;
+    private TextBox txtPassword;
+    private Label lblPassword;
+    private TextBox txtUsername;
+    private Label lblUsername;
 }

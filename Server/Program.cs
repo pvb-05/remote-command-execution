@@ -1,4 +1,11 @@
-﻿using Server;
+﻿namespace Server;
 
-TcpServer server = new TcpServer();
-server.Start();
+internal static class Program
+{
+    [STAThread]
+    static void Main()
+    {
+        ApplicationConfiguration.Initialize();
+        Application.Run(new Form1());
+    }
+}

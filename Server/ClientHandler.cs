@@ -2,22 +2,25 @@ using System;
 using System.IO;
 using System.Net.Sockets;
 using System.Text.Json;
-using Shared;
 using System.Threading;
+using Message = Shared.Message;
 
 namespace Server
 {
     public class ClientHandler
     {
-        public static void Handle(TcpClient client)
+        public static void Handle(TcpClient client, Action<string> log, Authentication auth)
         {
             int threadId = Thread.CurrentThread.ManagedThreadId;
-            Console.WriteLine("Thread " + threadId + " bắt đầu xử lý Client.");
+            log("Thread " + threadId + " bắt đầu xử lý Client.");
+            //Console.WriteLine("Thread " + threadId + " bắt đầu xử lý Client.");
+
+            bool isAuthenticated = false;
 
             try
             {
                 NetworkStream stream = client.GetStream();
-                stream.ReadTimeout = 30000; //(ms)
+                stream.ReadTimeout = 300000; //(ms)
 
                 StreamReader reader = new StreamReader(stream);
                 StreamWriter writer = new StreamWriter(stream);
@@ -34,59 +37,78 @@ namespace Server
                         break;
                     }
 
-                    Console.WriteLine("Client tại Thread" + threadId + " gửi: " + data);
+                    log("Client tại Thread " + threadId + " gửi: " + data);
+                    // Console.WriteLine("Client tại Thread" + threadId + " gửi: " + data);
 
                     Message response = new Message();
 
                     try
                     {
                         // Chuyển JSON thành đối tượng Message
-                        Message request =
-                            JsonSerializer.Deserialize<Message>(data);
+                        Message request = JsonSerializer.Deserialize<Message>(data);
 
-                        if (request != null)
+                        if (request == null)
                         {
-                            if (request.Type == "PING")
+                            response.Type = "RESULT";
+                            response.Success = false;
+                            response.Output = "Yêu cầu không hợp lệ";
+                        }
+                        else if (request.Type == "LOGIN")
+                        {
+                            bool result = auth.Login(request.Username, request.Password);
+
+                            response.Type = "LOGIN_RESULT";
+                            response.Success = result;
+
+                            if (result)
+                            {
+                                isAuthenticated = true;
+                                response.Output = "Đăng nhập thành công";
+                                log("Thread " + threadId + ": Đăng nhập thành công");
+                            }
+                            else
+                            {
+                                isAuthenticated = false;
+                                response.Output = "Sai tài khoản hoặc mật khẩu";
+                                log("Thread " + threadId + ": Đăng nhập thất bại");
+                            }
+                        }
+                        else if (request.Type == "COMMAND")
+                        {
+                            if (!isAuthenticated)
                             {
                                 response.Type = "RESULT";
-                                response.Success = true;
-                                response.Output = "PONG";
+                                response.Success = false;
+                                response.Output = "Vui lòng đăng nhập trước!";
+                                log("Thread " + threadId + ": Từ chối lệnh do chưa đăng nhập");
                             }
-                            else if (request.Type == "COMMAND")
+                            else
                             {
                                 string command = request.Command;
 
-                                // Kiểm tra các lệnh được phép
                                 if (command == "hostname" ||
                                     command == "dir" ||
                                     command == "ipconfig")
                                 {
-                                    string result = Command.Execute(command);
-
                                     response.Type = "RESULT";
+                                    response.Output = Command.Execute(command);
                                     response.Success = true;
-                                    response.Output = result;
+                                    log("Thread " + threadId + " đã xử lý lệnh: " + command);
                                 }
                                 else
                                 {
                                     response.Type = "RESULT";
-                                    response.Success = false;
                                     response.Output = "Lệnh không được hỗ trợ";
+                                    response.Success = false;
                                 }
-                            }
-                            else
-                            {
-                                response.Type = "RESULT";
-                                response.Success = false;
-                                response.Output = "Loại yêu cầu không hợp lệ";
                             }
                         }
                         else
                         {
                             response.Type = "RESULT";
                             response.Success = false;
-                            response.Output = "Yêu cầu rỗng";
-                        }
+                            response.Output = "Loại yêu cầu không hợp lệ";
+                        } 
                     }
                     catch (JsonException)
                     {
@@ -104,12 +126,14 @@ namespace Server
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Lỗi: " + ex.Message);
+                log("Lỗi Thread " + threadId + ": " + ex.Message);
+                // Console.WriteLine("Lỗi: " + ex.Message);
             }
             finally
             {
                 client.Close();
-                Console.WriteLine("Client đã ngắt kết nối");
+                log("Client tại Thread " + threadId + " đã ngắt kết nối");
+                //Console.WriteLine("Client đã ngắt kết nối");
             }
         }
     }

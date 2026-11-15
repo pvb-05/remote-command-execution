@@ -8,34 +8,77 @@ namespace Server
     public class TcpServer
     {
         private TcpListener listener;
+        private Authentication auth;
+        private Action<string> log;
+        private volatile bool isRunning = false;
 
-        public TcpServer()
+        private List<TcpClient> clients = new List<TcpClient>();
+
+        public TcpServer(string ip, int port, string password, Action<string> log)
         {
-            listener = new TcpListener(IPAddress.Loopback, 5000);  // IPAddress.Loopback: 127.0.0.1 (hằng số)
+            // 192.168.100.90
+            listener = new TcpListener(IPAddress.Parse(ip), port);
+            auth = new Authentication(password);
+            this.log = log;
         }
 
+        // Khởi động Server
         public void Start()
         {
-            listener.Start();
-
-            Console.WriteLine("Server đang chạy tại 127.0.0.1:5000");
-
-            while (true)
+            try
             {
-                // Chờ và chấp nhận Client kết nối
-                TcpClient client = listener.AcceptTcpClient();
+                listener.Start();
+                isRunning = true;
+                log("Server đang chạy tại 127.0.0.1:5000");
 
-                Console.WriteLine("Client đã kết nối!");
-
-                // Giao cho ClientHandler xử lý 
-                Thread thread = new Thread(() =>
+                while (isRunning)
                 {
-                    ClientHandler.Handle(client);
-                });
+                    TcpClient client = listener.AcceptTcpClient();
 
-                thread.IsBackground = true;
-                thread.Start();
+                    // Lưu Client vừa kết nối
+                    lock (clients) { clients.Add(client); }
+
+                    Thread thread = new Thread(() => {
+                        ClientHandler.Handle(client, log, auth);
+
+                        // Xóa client khi ngắt kết nối
+                        lock (clients) { clients.Remove(client); }
+
+                    });
+
+                    thread.IsBackground = true;
+                    thread.Start();
+                }
             }
+            catch (SocketException)
+            {
+                // Khi Stop() đóng listener, AcceptTcpClient sẽ kết thúc
+            }
+            finally
+            {
+                isRunning = false;
+                listener.Stop();
+            }
+        }
+
+        // Dừng Server
+        public void Stop()
+        {
+            isRunning = false;
+            listener.Stop();
+
+            // Ngắt tất cả Client đang kết nối
+            lock (clients)
+            {
+                foreach (TcpClient client in clients)
+                {
+                    client.Close();
+                }
+
+                clients.Clear();
+            }
+
+            log("Server đã dừng hoạt động");
         }
     }
 }
